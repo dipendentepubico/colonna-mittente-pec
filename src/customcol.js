@@ -5,7 +5,7 @@ var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 
 var MSG_VIEW_FLAG_DUMMY = 0x20000000;
 
-const senderColumnHandler = {
+const replyToColumnHandler = {
   init(win) { this.win = win; },
   getCellText(row, col) { return this.isDummy(row) ? "" : this.getAddress(this.win.gDBView.getMsgHdrAt(row)); },
   getSortStringForRow(hdr) { return this.getAddress(hdr); },
@@ -14,11 +14,17 @@ const senderColumnHandler = {
   getRowProperties(row, props) {},
   getImageSrc(row, col) { return null; },
   getSortLongForRow(hdr) { return 0; },
-  getAddress(aHeader) { return aHeader.author.replace(/.*</, "").replace(/>.*/, ""); },
+  getAddress(aHeader) {
+		let mittente = aHeader.getStringProperty( "replyTo" ) ;
+		if(mittente == ''){
+			mittente = aHeader.author;
+		}
+		return mittente;
+	  },
   isDummy(row) { return (this.win.gDBView.getFlagsAt(row) & MSG_VIEW_FLAG_DUMMY) != 0; }
 };
 
-const recipientColumnHandler = {
+const fromColumnHandler = {
   init(win) { this.win = win; },
   getCellText(row, col) { return this.isDummy(row) ? "" : this.getAddress(this.win.gDBView.getMsgHdrAt(row)); },
   getSortStringForRow(hdr) { return this.getAddress(hdr); },
@@ -27,8 +33,17 @@ const recipientColumnHandler = {
   getRowProperties(row, props) {},
   getImageSrc(row, col) { return null; },
   getSortLongForRow(hdr) { return 0; },
-  formatAddress(acc, val) { return (acc == "" ? "" : acc + ", ") + (val.includes(">") ? [...val.matchAll(/[^<]+(?=>)/g)].join(', ') : val); },
-  getAddress(aHeader) { return aHeader.recipients.split(',').reduce(this.formatAddress, ""); },
+  getAddress(aHeader) {
+		const regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+		let mittente = '';
+		let result = aHeader.author.match(regex);
+		if(result.length = 1)
+		{
+		  mittente = result[0];
+		}
+		return mittente;
+	  
+	},
   isDummy(row) { return (this.win.gDBView.getFlagsAt(row) & MSG_VIEW_FLAG_DUMMY) != 0; }
 };
 
@@ -44,10 +59,10 @@ const columnOverlay = {
 
   observe(aMsgFolder, aTopic, aData) {
     try {
-      senderColumnHandler.init(this.win);
-      recipientColumnHandler.init(this.win);
-      this.win.gDBView.addColumnHandler("senderAddressColumn", senderColumnHandler);
-      this.win.gDBView.addColumnHandler("recipientAddressColumn", recipientColumnHandler);
+      replyToColumnHandler.init(this.win);
+      fromColumnHandler.init(this.win);
+      this.win.gDBView.addColumnHandler("replyToAddressColumn", replyToColumnHandler);
+      this.win.gDBView.addColumnHandler("fromPCDAddressColumn", fromColumnHandler);
     } catch (ex) {
       console.error(ex);
       throw new Error("Cannot add column handler");
@@ -87,8 +102,8 @@ const columnOverlay = {
   },
 
   addColumns(win) {
-    this.addColumn(win, "senderAddressColumn", "Sender (@)");
-    this.addColumn(win, "recipientAddressColumn", "Recipient (@)");
+    this.addColumn(win, "replyToAddressColumn", "Mittente PEC");
+    this.addColumn(win, "fromPCDAddressColumn", "Mittente PEC PCD");
   },
 
   destroyColumn(columnId) {
@@ -98,8 +113,8 @@ const columnOverlay = {
   },
 
   destroyColumns() {
-    this.destroyColumn("senderAddressColumn");
-    this.destroyColumn("recipientAddressColumn");
+    this.destroyColumn("replyToAddressColumn");
+    this.destroyColumn("fromPCDAddressColumn");
     Services.obs.removeObserver(this, "MsgCreateDBView");
   },
 };

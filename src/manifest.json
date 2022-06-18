@@ -1,14 +1,15 @@
 {
   "manifest_version": 2,
-  "name": "Full Address column",
-  "description": "Adds a full sender and recipient e-mail column to message list panel",
-  "version": "1.0.3",
-  "author": "Łukasz Kosson",
+  "name": "Colonna Mittente PEC",
+  "description": "Nella lista delle email mostra la colonna con il reale mittente della PEC.",
+  "version": "1.0",
+  "author": "dipendentepubico",
+  "homepage_url": "https://github.com/dipendentepubico/colonna-mittente-pec",
   "applications": {
     "gecko": {
-      "id": "full-address-column@lukasz.kosson.net",
+      "id": "colonna-mittente-pec@pec.dipendentepubico.it",
       "strict_min_version": "68.0a1",
-      "strict_max_version": "91.*"
+	  "strict_max_version": "91.*"
     }
   },
   "experiment_apis": {
