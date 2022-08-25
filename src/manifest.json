@@ -2,14 +2,14 @@
   "manifest_version": 2,
   "name": "Colonna Mittente PEC",
   "description": "Nella lista delle email mostra la colonna con il reale mittente della PEC.",
-  "version": "1.0",
+  "version": "1.1",
   "author": "dipendentepubico",
   "homepage_url": "https://github.com/dipendentepubico/colonna-mittente-pec",
   "applications": {
     "gecko": {
       "id": "colonna-mittente-pec@pec.dipendentepubico.it",
       "strict_min_version": "68.0a1",
-	  "strict_max_version": "91.*"
+	  "strict_max_version": "102.*"
     }
   },
   "experiment_apis": {
